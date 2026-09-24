@@ -1,261 +1,502 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DBI Attendance</title>
-
-  <style>
-    :root {
-      --navy:#1F3864;
-      --bg:#F4F6FA;
-      --card:#fff;
-      --muted:#6B7280;
-    }
-
-    * {
-      box-sizing:border-box;
-    }
-
-    body {
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:#111;
-    }
-
-    header {
-      background:var(--navy);
-      color:#fff;
-      padding:14px 16px;
-    }
-
-    header h1 {
-      margin:0;
-      font-size:17px;
-    }
-
-    header .sub {
-      font-size:12px;
-      opacity:.85;
-      margin-top:2px;
-    }
-
-    .wrap {
-      padding:14px;
-      max-width:560px;
-      margin:0 auto;
-    }
-
-    .card {
-      background:#fff;
-      border-radius:12px;
-      padding:14px;
-      margin-bottom:12px;
-      box-shadow:0 1px 3px rgba(0,0,0,.08);
-    }
-
-    label {
-      font-size:13px;
-      color:var(--muted);
-      display:block;
-      margin:10px 0 6px;
-    }
-
-    select,
-    input {
-      width:100%;
-      font-size:17px;
-      padding:12px;
-      border:1px solid #CBD5E1;
-      border-radius:10px;
-      background:#fff;
-    }
-
-    input.pin {
-      letter-spacing:10px;
-      text-align:center;
-      font-size:24px;
-    }
-
-    button {
-      width:100%;
-      font-size:16px;
-      font-weight:600;
-      padding:14px;
-      border:0;
-      border-radius:10px;
-      cursor:pointer;
-      margin-top:12px;
-    }
-
-    .primary {
-      background:var(--navy);
-      color:#fff;
-    }
-
-    .err {
-      color:#C00000;
-      font-weight:600;
-      margin-top:10px;
-    }
-  </style>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<style>
+  :root { --navy:#1F3864; --red:#C00000; --green:#2E7D32; --bg:#F4F6FA; --card:#fff; --muted:#6B7280; --line:#E5E7EB; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:#111; }
+  header { background:var(--navy); color:#fff; padding:14px 16px; position:sticky; top:0; z-index:5; }
+  header h1 { margin:0; font-size:17px; } header .sub { font-size:12px; opacity:.85; margin-top:2px; }
+  .wrap { padding:14px; max-width:560px; margin:0 auto; }
+  .card { background:var(--card); border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  label { font-size:13px; color:var(--muted); display:block; margin:10px 0 6px; }
+  select, input { width:100%; font-size:17px; padding:12px; border:1px solid #CBD5E1; border-radius:10px; background:#fff; }
+  input.pin { letter-spacing:10px; text-align:center; font-size:24px; }
+  button { width:100%; font-size:16px; font-weight:600; padding:14px; border:0; border-radius:10px; cursor:pointer; margin-top:12px; }
+  .primary { background:var(--navy); color:#fff; } .danger { background:#fff; color:var(--red); border:2px solid var(--red); }
+  .ghost { background:#E8EDF7; color:var(--navy); } .ok { background:var(--green); color:#fff; }
+  button:disabled { opacity:.5; }
+  .hour { display:flex; align-items:center; justify-content:space-between; padding:12px; border:1px solid var(--line); border-radius:10px; margin-top:10px; cursor:pointer; }
+  .hour .t { font-weight:700; } .hour .s { font-size:13px; color:var(--muted); margin-top:2px; }
+  .pill { font-size:12px; font-weight:700; padding:4px 8px; border-radius:20px; white-space:nowrap; }
+  .pill.no { background:#FDE9E7; color:var(--red); } .pill.yes { background:#E2EFDA; color:var(--green); }
+  .stu { display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid var(--line); cursor:pointer; user-select:none; }
+  .stu:last-child { border-bottom:0; }
+  .roll { width:36px; height:36px; border-radius:50%; background:#E8EDF7; color:var(--navy); font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; }
+  .nm { flex:1; font-size:16px; }
+  .tag { font-size:13px; font-weight:700; color:var(--green); }
+  .stu.abs { background:#FDE9E7; } .stu.abs .roll { background:var(--red); color:#fff; } .stu.abs .tag { color:var(--red); }
+  .counts { display:flex; gap:10px; }
+  .counts div { flex:1; text-align:center; padding:10px; border-radius:10px; font-weight:700; }
+  .cp { background:#E2EFDA; color:var(--green); } .ca { background:#FDE9E7; color:var(--red); }
+  .bar { position:sticky; bottom:0; background:var(--bg); padding:8px 0 14px; }
+  .muted { color:var(--muted); font-size:13px; } .err { color:var(--red); font-weight:600; margin-top:10px; }
+  .hidden { display:none; } .center { text-align:center; }
+  .big { font-size:40px; } .link { color:var(--navy); text-decoration:underline; cursor:pointer; font-size:14px; }
+  .row2 { display:flex; gap:10px; } .row2 > * { flex:1; }
+  .spin { display:inline-block; width:18px; height:18px; border:3px solid #CBD5E1; border-top-color:var(--navy); border-radius:50%; animation:s 1s linear infinite; vertical-align:middle; }
+  @keyframes s { to { transform:rotate(360deg); } }
+</style>
 </head>
-
 <body>
-
-<header>
-  <h1>DBI Attendance</h1>
-  <div class="sub">Digital Bridge International</div>
-</header>
-
+<header><h1>DBI Attendance</h1><div class="sub" id="hsub">Digital Bridge International</div></header>
 <div class="wrap">
 
-  <div class="card">
-
+  <!-- LOGIN -->
+  <div id="vLogin" class="card">
     <label>Your name</label>
-
-    <select id="fName">
-      <option value="">Select your name</option>
-    </select>
-
+    <select id="fName"><option value="">Loading…</option></select>
     <label>4-digit PIN</label>
-
-    <input
-      id="fPin"
-      class="pin"
-      type="password"
-      inputmode="numeric"
-      maxlength="4"
-      autocomplete="off"
-    >
-
-    <button class="primary" onclick="doLogin()">
-      Log in
-    </button>
-
+    <input id="fPin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+    <button class="primary" id="bLogin" onclick="doLogin()">Log in</button>
     <div id="eLogin" class="err"></div>
-
   </div>
 
+  <!-- HOME -->
+  <div id="vHome" class="hidden">
+    <div class="card">
+      <div class="t" style="font-weight:700">Hello, <span id="meName"></span></div>
+      <div class="muted" id="meDate"></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700">My hours today</div>
+      <div id="myHours"></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700">Substitution / another class</div>
+      <div class="muted">Taking a class that is not in your timetable today?</div>
+      <button class="ghost" onclick="openSub()">Mark another class</button>
+    </div>
+    <div class="center"><span class="link" onclick="logout()">Log out</span></div>
+  </div>
+
+  <!-- SUBSTITUTION PICKER -->
+  <div id="vSub" class="hidden">
+    <div class="card">
+      <div style="font-weight:700">Substitution</div>
+      <label>Year</label><select id="sYear" onchange="loadClasses()"></select>
+      <label>Class</label><select id="sClass" onchange="loadClassHours()"></select>
+      <div id="sHours"></div>
+      <div id="eSub" class="err"></div>
+    </div>
+    <button class="ghost" onclick="show('vHome')">← Back</button>
+  </div>
+
+  <!-- MARKING -->
+  <div id="vMark" class="hidden">
+    <div class="card">
+      <div style="font-weight:700;font-size:17px" id="mTitle"></div>
+      <div class="muted" id="mSub"></div>
+      <div id="mSubjWrap" class="hidden">
+        <label>Subject taken in this hour</label>
+        <select id="mSubj"></select>
+      </div>
+      <div id="mPrev" class="muted" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="counts"><div class="cp" id="cP">0 Present</div><div class="ca" id="cA">0 Absent</div></div>
+      <div class="muted center" style="margin-top:8px">Everyone is Present. Tap a student to mark <b style="color:var(--red)">Absent</b>.</div>
+    </div>
+    <div class="card" style="padding:0" id="mList"></div>
+    <div class="bar">
+      <button class="ok" id="bSubmit" onclick="submit(false)">Submit attendance</button>
+      <div class="row2">
+        <button class="danger" onclick="submit(true)">Class not held</button>
+        <button class="ghost" onclick="show('vHome')">Cancel</button>
+      </div>
+      <div id="eMark" class="err"></div>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div id="vDone" class="hidden card center">
+    <div class="big">✅</div>
+    <div style="font-weight:700;font-size:18px" id="dTitle"></div>
+    <div id="dSum" style="margin-top:6px"></div>
+    <div class="muted" id="dAt" style="margin-top:6px"></div>
+    <button class="primary" onclick="refreshHome()">Back to my hours</button>
+  </div>
+
+  <div id="vLoad" class="hidden center" style="padding:30px"><span class="spin"></span> <span id="loadMsg">Please wait…</span></div>
 </div>
 
 <script>
+  var ME = null, PIN = '', HOUR = null, ABS = {}, SUBMODE = false, YEARS = [];
 
-const API_URL = "/api/backend";
+  const API_URL = "/api/backend";
 
-async function callBackend(action, data = {}) {
-
- const response = await fetch(API_URL, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    action: action,
-    args: data
-  })
-});
-
-  if (!response.ok) {
-    throw new Error("Server error: " + response.status);
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
   }
 
-  const result = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.error || "Something went wrong.");
+  function show(v) {
+    ['vLogin','vHome','vSub','vMark','vDone','vLoad'].forEach(function (x) {
+      $(x).classList.add('hidden');
+    });
+    $(v).classList.remove('hidden');
+    window.scrollTo(0, 0);
   }
 
-  return result.data;
-}
+  function loading(msg) {
+    $('loadMsg').textContent = msg || 'Please wait…';
+    show('vLoad');
+  }
 
+  function fail(where, back) {
+    return function (e) {
+      show(back);
+      $(where).textContent = (e && e.message) ? e.message : String(e);
+    };
+  }
 
-// Load faculty names
-async function loadNames() {
-
-  try {
-
-    const names = await callBackend("getFacultyNames");
-
-    const select = document.getElementById("fName");
-
-    select.innerHTML =
-      '<option value="">Select your name</option>';
-
-    names.forEach(function(name) {
-
-      const option = document.createElement("option");
-
-      option.value = name;
-      option.textContent = name;
-
-      select.appendChild(option);
-
+  async function callBackend(action, data) {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: action,
+        args: data || {}
+      })
     });
 
-  } catch (error) {
+    const text = await response.text();
 
-    document.getElementById("eLogin").textContent =
-      error.message;
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      throw new Error('Invalid server response. Please try again.');
+    }
 
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || ('Server error: ' + response.status));
+    }
+
+    return result.data;
   }
 
-}
-
-
-// Login
-async function doLogin() {
-
-  const name =
-    document.getElementById("fName").value;
-
-  const pin =
-    document.getElementById("fPin").value.trim();
-
-  document.getElementById("eLogin").textContent = "";
-
-  if (!name) {
-
-    document.getElementById("eLogin").textContent =
-      "Select your name.";
-
-    return;
+  async function loadFacultyNames() {
+    try {
+      var names = await callBackend('getFacultyNames', {});
+      var sel = $('fName');
+      sel.innerHTML = '<option value="">Select your name</option>';
+      names.forEach(function (n) {
+        sel.innerHTML += '<option>' + esc(n) + '</option>';
+      });
+      try {
+        var last = localStorage.getItem('dbiAttName');
+        if (last) sel.value = last;
+      } catch (e) {}
+    } catch (e) {
+      $('eLogin').textContent = e.message || String(e);
+    }
   }
 
-  if (!/^\d{4}$/.test(pin)) {
+  async function doLogin() {
+    var n = $('fName').value, p = $('fPin').value.trim();
+    $('eLogin').textContent = '';
 
-    document.getElementById("eLogin").textContent =
-      "Enter your 4-digit PIN.";
+    if (!n) {
+      $('eLogin').textContent = 'Select your name.';
+      return;
+    }
 
-    return;
+    if (!/^\d{4}$/.test(p)) {
+      $('eLogin').textContent = 'Enter your 4-digit PIN.';
+      return;
+    }
+
+    loading('Checking…');
+
+    try {
+      var res = await callBackend('login', { name: n, pin: p });
+      ME = res.name;
+      PIN = p;
+      YEARS = res.years;
+      try { localStorage.setItem('dbiAttName', ME); } catch (e) {}
+      renderHome(res);
+    } catch (e) {
+      fail('eLogin', 'vLogin')(e);
+    }
   }
 
-  try {
+  function logout() {
+    ME = null;
+    PIN = '';
+    $('fPin').value = '';
+    $('hsub').textContent = 'Digital Bridge International';
+    show('vLogin');
+  }
 
-    const result = await callBackend("login", {
-      name: name,
-      pin: pin
+  function renderHome(res) {
+    $('meName').textContent = res.name;
+    $('meDate').textContent = res.today;
+    $('hsub').textContent = res.name + ' · ' + res.today;
+
+    var h = res.hours, box = $('myHours');
+
+    if (!h.length) {
+      box.innerHTML = '<div class="muted" style="margin-top:8px">No hours in your timetable today. Use "Mark another class" for a substitution.</div>';
+    } else {
+      box.innerHTML = h.map(function (x, i) {
+        return '<div class="hour" onclick="openHour(' + i + ',false)"><div><div class="t">' +
+          esc(x.cls) + ' · ' + esc(x.per) +
+          ' <span class="muted">(' + esc(x.time) + ')</span></div><div class="s">' +
+          esc(x.subj) + '</div></div><span class="pill ' +
+          (x.marked ? 'yes' : 'no') + '">' +
+          (x.marked ? '✔ ' + esc(x.label) : 'Not marked') +
+          '</span></div>';
+      }).join('');
+    }
+
+    window._HOURS = h;
+    show('vHome');
+  }
+
+  async function refreshHome() {
+    loading('Loading your hours…');
+    try {
+      var res = await callBackend('login', { name: ME, pin: PIN });
+      renderHome(res);
+    } catch (e) {
+      fail('eLogin', 'vLogin')(e);
+    }
+  }
+
+  function openSub() {
+    var y = $('sYear');
+    y.innerHTML = '<option value="">Select year</option>';
+
+    YEARS.forEach(function (x) {
+      y.innerHTML += '<option value="' + x.idx + '">' + esc(x.year) + '</option>';
     });
 
-    console.log("Login successful:", result);
-
-    alert("Login successful for " + result.name);
-
-  } catch (error) {
-
-    document.getElementById("eLogin").textContent =
-      error.message;
-
+    $('sClass').innerHTML = '';
+    $('sHours').innerHTML = '';
+    $('eSub').textContent = '';
+    show('vSub');
   }
 
-}
+  async function loadClasses() {
+    var idx = $('sYear').value;
+    $('sClass').innerHTML = '';
+    $('sHours').innerHTML = '';
 
+    if (idx === '') return;
 
-// Start
-loadNames();
+    $('sHours').innerHTML =
+      '<div class="muted" style="margin-top:10px"><span class="spin"></span> Loading…</div>';
 
+    try {
+      var cls = await callBackend('getClasses', {
+        name: ME,
+        pin: PIN,
+        idx: Number(idx)
+      });
+
+      var s = $('sClass');
+      s.innerHTML = '<option value="">Select class</option>';
+
+      cls.forEach(function (c) {
+        s.innerHTML += '<option value="' + esc(c.sheet) + '">' +
+          esc(c.cls) + '</option>';
+      });
+
+      $('sHours').innerHTML = '';
+
+      if (cls.length === 1) {
+        s.value = cls[0].sheet;
+        loadClassHours();
+      }
+    } catch (e) {
+      fail('eSub', 'vSub')(e);
+    }
+  }
+
+  async function loadClassHours() {
+    var idx = $('sYear').value;
+    var sh = $('sClass').value;
+    $('sHours').innerHTML = '';
+
+    if (!sh) return;
+
+    $('sHours').innerHTML =
+      '<div class="muted" style="margin-top:10px"><span class="spin"></span> Loading today\'s hours…</div>';
+
+    try {
+      var h = await callBackend('getClassHoursToday', {
+        name: ME,
+        pin: PIN,
+        idx: Number(idx),
+        sheetName: sh
+      });
+
+      window._SUB = h;
+
+      $('sHours').innerHTML = h.length
+        ? h.map(function (x, i) {
+            return '<div class="hour" onclick="openHour(' + i + ',true)"><div><div class="t">' +
+              esc(x.per) + ' <span class="muted">(' + esc(x.time) +
+              ')</span></div><div class="s">' + esc(x.subj) + ' — ' +
+              esc(x.fac) + '</div></div><span class="pill ' +
+              (x.marked ? 'yes' : 'no') + '">' +
+              (x.marked ? '✔ ' + esc(x.label) : 'Not marked') +
+              '</span></div>';
+          }).join('')
+        : '<div class="muted" style="margin-top:10px">This class has no hours today.</div>';
+
+    } catch (e) {
+      fail('eSub', 'vSub')(e);
+    }
+  }
+
+  async function openHour(i, sub) {
+    var x = sub ? window._SUB[i] : window._HOURS[i];
+    SUBMODE = sub;
+    loading('Opening class list…');
+
+    try {
+      var h = await callBackend('getHour', {
+        name: ME,
+        pin: PIN,
+        idx: x.idx,
+        sheetName: x.sheet,
+        row: x.row
+      });
+
+      renderMark(h);
+    } catch (e) {
+      fail(sub ? 'eSub' : 'eLogin', sub ? 'vSub' : 'vHome')(e);
+    }
+  }
+
+  function renderMark(h) {
+    HOUR = h;
+    ABS = {};
+
+    (h.absent || []).forEach(function (r) {
+      ABS[r] = true;
+    });
+
+    $('mTitle').textContent =
+      h.cls + ' · ' + h.per + ' (' + h.time + ')';
+
+    $('mSub').textContent =
+      (h.chg || h.subj) + ' · ' + h.date +
+      (SUBMODE ? ' · Substitution' : '');
+
+    var sel = $('mSubj');
+
+    if (SUBMODE) {
+      sel.innerHTML = h.subjects.map(function (s) {
+        return '<option' +
+          ((h.chg || h.subj) === s ? ' selected' : '') +
+          '>' + esc(s) + '</option>';
+      }).join('');
+
+      $('mSubjWrap').classList.remove('hidden');
+    } else {
+      $('mSubjWrap').classList.add('hidden');
+    }
+
+    $('mPrev').textContent =
+      h.marked
+        ? ('Already marked' +
+          (h.markedBy ? ' by ' + h.markedBy : '') +
+          (h.notHeld ? ' as CLASS NOT HELD' : '') +
+          ' — you can correct it today.')
+        : '';
+
+    $('mList').innerHTML = h.students.map(function (s) {
+      return '<div class="stu' + (ABS[s.roll] ? ' abs' : '') +
+        '" id="st' + s.roll + '" onclick="tog(' + s.roll + ')">' +
+        '<div class="roll">' + s.roll + '</div>' +
+        '<div class="nm">' + esc(s.name) + '</div>' +
+        '<div class="tag" id="tg' + s.roll + '">' +
+        (ABS[s.roll] ? 'ABSENT' : 'Present') +
+        '</div></div>';
+    }).join('');
+
+    $('eMark').textContent = '';
+    counts();
+    show('vMark');
+  }
+
+  function tog(r) {
+    ABS[r] = !ABS[r];
+    $('st' + r).classList.toggle('abs', ABS[r]);
+    $('tg' + r).textContent = ABS[r] ? 'ABSENT' : 'Present';
+    counts();
+  }
+
+  function counts() {
+    var a = Object.keys(ABS).filter(function (k) {
+      return ABS[k];
+    }).length;
+
+    var t = HOUR.students.length;
+
+    $('cP').textContent = (t - a) + ' Present';
+    $('cA').textContent = a + ' Absent';
+  }
+
+  async function submit(notHeld) {
+    var absent = Object.keys(ABS)
+      .filter(function (k) { return ABS[k]; })
+      .map(Number);
+
+    var msg = notHeld
+      ? 'Record this hour as CLASS NOT HELD?'
+      : 'Submit: ' + (HOUR.students.length - absent.length) +
+        ' present, ' + absent.length + ' absent?';
+
+    if (!confirm(msg)) return;
+
+    var p = {
+      idx: HOUR.idx,
+      sheet: HOUR.sheet,
+      row: HOUR.row,
+      dkey: HOUR.dkey,
+      per: HOUR.per,
+      notHeld: notHeld,
+      absent: absent,
+      total: HOUR.students.length,
+      substitution: SUBMODE,
+      subject: SUBMODE ? $('mSubj').value : ''
+    };
+
+    loading('Saving…');
+
+    try {
+      var r = await callBackend('submitAttendance', {
+        name: ME,
+        pin: PIN,
+        p: p
+      });
+
+      $('dTitle').textContent =
+        r.cls + ' · ' + r.per + ' — ' + r.subject;
+
+      $('dSum').textContent = r.summary;
+      $('dAt').textContent = 'Saved ' + r.at;
+      show('vDone');
+
+    } catch (e) {
+      fail('eMark', 'vMark')(e);
+    }
+  }
+
+  $('fPin').addEventListener('keyup', function (e) {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  loadFacultyNames();
 </script>
-
 </body>
 </html>
