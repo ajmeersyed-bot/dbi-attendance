@@ -146,16 +146,16 @@ const API_URL = "/api/backend";
 
 async function callBackend(action, data = {}) {
 
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      action: action,
-      ...data
-    })
-  });
+ const response = await fetch(API_URL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    action: action,
+    args: data
+  })
+});
 
   if (!response.ok) {
     throw new Error("Server error: " + response.status);
